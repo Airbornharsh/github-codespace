@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/airbornharsh/github-codespace/service/pkg/routes"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,6 +18,9 @@ func main() {
 			"message": "Welcome to Code Space",
 		})
 	})
-	r.Run(":5000")
+
+	routes.Init(r)
+
 	fmt.Println("Server Started at http://localhost:5000")
+	r.Run(":5000")
 }
