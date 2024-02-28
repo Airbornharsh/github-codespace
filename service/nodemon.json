@@ -1,0 +1,6 @@
+{
+  "watch": ["pkg", "internal", "cmd"],
+  "ext": "go",
+  "ignore": [""],
+  "exec": "go run cmd/code-space/main.go"
+}
