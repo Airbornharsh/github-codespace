@@ -2,12 +2,10 @@ package helpers
 
 import (
 	"bytes"
-	"net/http/httputil"
-	"net/url"
 	"strconv"
 
 	// "context"
-	"fmt"
+	// "fmt"
 	// "io"
 	// "os"
 	"os/exec"
@@ -125,13 +123,4 @@ func DeleteDockerImageAndContainer(imageId string, containerId string) error {
 		return err
 	}
 	return nil
-}
-
-func NewReverseProxy(targetURL string) *httputil.ReverseProxy {
-	target, err := url.Parse(targetURL)
-	if err != nil {
-		fmt.Println("Error parsing target URL")
-	}
-
-	return httputil.NewSingleHostReverseProxy(target)
 }

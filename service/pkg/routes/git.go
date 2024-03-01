@@ -11,5 +11,4 @@ func GitInit(r *gin.RouterGroup) {
 
 	gitR.POST("/clone", handlers.GitClone)
 	gitR.DELETE("/delete", handlers.DeleteContainer)
-	gitR.GET("/rem", handlers.GetContainer)
 }
