@@ -6,4 +6,5 @@ func Init(r *gin.Engine) {
 	api := r.Group("/api")
 
 	GitInit(api)
+	CodeInit(api)
 }

@@ -2,6 +2,8 @@ package helpers
 
 import (
 	"bytes"
+	// "fmt"
+	"os"
 	"strconv"
 
 	// "context"
@@ -119,6 +121,27 @@ func DeleteDockerImageAndContainer(imageId string, containerId string) error {
 		return err
 	}
 	err = exec.Command("docker", "rmi", imageId).Run()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func WriteFileToContainer(containerId string, imageId string, filePath string, data string) error {
+	newFilePath := "./fileTmp/" + imageId + filePath
+
+	err := os.WriteFile(newFilePath, []byte(data), 0644)
+	if err != nil {
+		return err
+	}
+
+	err = exec.Command("docker", "cp", newFilePath, containerId+":"+filePath).Run()
+
+	newErr := os.Remove(newFilePath)
+	if newErr != nil {
+		return newErr
+	}
+
 	if err != nil {
 		return err
 	}
