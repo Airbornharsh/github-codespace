@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -85,7 +84,6 @@ func GetPort(port int) int {
 		if err != nil {
 			break
 		}
-		fmt.Println("Port in use", port)
 	}
 
 	return port

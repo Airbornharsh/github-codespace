@@ -2,69 +2,12 @@ package helpers
 
 import (
 	"bytes"
-	// "fmt"
 	"os"
 	"strconv"
 
-	// "context"
-	// "fmt"
-	// "io"
-	// "os"
 	"os/exec"
 	"path/filepath"
-	// "github.com/docker/docker/api/types"
-	// "github.com/docker/docker/api/types/container"
-	// "github.com/docker/docker/client"
 )
-
-// func buildDockerImage(contextDir, dockerfilePath, imageName string) error {
-// 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation(), client.WithVersion("1.43"))
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	absContextDir, err := filepath.Abs(contextDir)
-// 	if err != nil {
-// 		fmt.Println("Error getting absolute path")
-// 		return err
-// 	}
-
-// 	fmt.Println(absContextDir)
-
-// 	buildContext, err := os.Open(absContextDir)
-// 	if err != nil {
-// 		fmt.Println("Error opening context dir")
-// 		return err
-// 	}
-// 	defer buildContext.Close()
-
-// 	absDockerfilePath, err := filepath.Abs(dockerfilePath)
-// 	if err != nil {
-// 		fmt.Println("Error getting absolute path")
-// 		return err
-// 	}
-
-// 	fmt.Println(absDockerfilePath)
-
-// 	buildOptions := types.ImageBuildOptions{
-// 		Dockerfile: filepath.ToSlash(absDockerfilePath),
-// 		Tags:       []string{imageName},
-// 	}
-
-// 	buildResponse, err := cli.ImageBuild(context.Background(), buildContext, buildOptions)
-// 	if err != nil {
-// 		fmt.Println("Error building image")
-// 		return err
-// 	}
-// 	defer buildResponse.Body.Close()
-
-// 	_, err = io.Copy(os.Stdout, buildResponse.Body)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
 
 func CreateContainer(rootDir string, stack string, imageName string) (string, int, error) {
 	codeLocation := ""

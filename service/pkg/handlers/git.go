@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/airbornharsh/github-codespace/service/pkg/helpers"
@@ -36,8 +35,6 @@ func GitClone(c *gin.Context) {
 		})
 		return
 	}
-
-	fmt.Println(id, port)
 
 	c.JSON(200, gin.H{
 		"message": "Clone",

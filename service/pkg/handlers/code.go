@@ -1,11 +1,8 @@
 package handlers
 
 import (
-	"fmt"
-	// "os/exec"
 	"strings"
 
-	// "github.com/airbornharsh/github-codespace/service/pkg/helpers"
 	"github.com/airbornharsh/github-codespace/service/pkg/helpers"
 	"github.com/gin-gonic/gin"
 )
@@ -45,7 +42,6 @@ func CodeUpdate(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(files)
 	for _, file := range files {
 		err = helpers.WriteFileToContainer(containerInfo.ContainerID, imageId, file.FilePath, file.Data)
 		if err != nil {
