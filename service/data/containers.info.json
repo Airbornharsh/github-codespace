@@ -1,0 +1,12 @@
+{
+  "41486dfb-3c90-4cfb-8b3d-0def622f45f3": {
+    "containerId": "910be95ee3b31c6d88901cf722087d2e7955411d4968fdb30d8adf6a9236b680",
+    "containerName": "41486dfb-3c90-4cfb-8b3d-0def622f45f3",
+    "port": 8088
+  },
+  "6c2c120f-f96b-45cb-87de-a49e5be4aab8": {
+    "containerId": "1e8fc085354c2b12c128f0e0fc78a7a98950995a1267048cea84edbe771dd351",
+    "containerName": "6c2c120f-f96b-45cb-87de-a49e5be4aab8",
+    "port": 8089
+  }
+}

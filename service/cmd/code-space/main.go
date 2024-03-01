@@ -13,7 +13,6 @@ func main() {
 	r := gin.New()
 
 	r.GET("/", func(c *gin.Context) {
-		fmt.Println("Hello World")
 		c.JSON(200, gin.H{
 			"message": "Welcome to Code Space",
 		})
