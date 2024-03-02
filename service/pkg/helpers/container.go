@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"os/exec"
-	"path/filepath"
 )
 
 func CreateContainer(rootDir string, stack string, imageName string) (string, int, error) {
@@ -21,12 +20,7 @@ func CreateContainer(rootDir string, stack string, imageName string) (string, in
 
 	image := imageName + ":latest"
 
-	absDockerfilePath, err := filepath.Abs("./pkg/dockerFiles/React/Dockerfile")
-	if err != nil {
-		return "", 0, err
-	}
-
-	err = exec.Command("cp", absDockerfilePath, codeLocation).Run()
+	err := exec.Command("cp", "./pkg/dockerFiles/React/Dockerfile", codeLocation).Run()
 	if err != nil {
 		return "", 0, err
 	}
