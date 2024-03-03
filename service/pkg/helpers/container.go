@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -20,13 +21,14 @@ func CreateContainer(rootDir string, stack string, imageName string) (string, in
 
 	image := imageName + ":latest"
 
-	err := exec.Command("cp", "./pkg/dockerFiles/React/Dockerfile", codeLocation).Run()
+	err := exec.Command("cp", "./pkg/dockerFiles/"+stack+"/Dockerfile", codeLocation).Run()
 	if err != nil {
 		return "", 0, err
 	}
 
 	err = exec.Command("docker", "build", "-t", image, codeLocation).Run()
 	if err != nil {
+		fmt.Println("building ", err)
 		return "", 0, err
 	}
 
