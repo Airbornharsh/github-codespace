@@ -1,13 +1,10 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -55,62 +52,12 @@ func main() {
 
 	r.GET("/*any", func(c *gin.Context) {
 		if c.Request.URL.Path == "/ws" {
-			imageId := strings.Split(c.Request.Host, ".")[0]
-
-			containersData, err := helpers.ReadContainersData()
-			if err != nil {
+			done := helpers.StartWebSocket(c, &upgrader)
+			if !done {
 				c.JSON(500, gin.H{
-					"message": "Error reading containers data",
-					"error":   err.Error(),
+					"message": "Error starting WebSocket",
 				})
-				return
 			}
-
-			containerInfo, ok := containersData[imageId]
-			if !ok {
-				c.JSON(404, gin.H{
-					"message": "Container not found",
-				})
-				return
-			}
-
-			conn, err := upgrader.Upgrade(c.Writer, c.Request, http.Header{
-				"Access-Control-Allow-Origin": []string{"*"},
-			})
-			if err != nil {
-				fmt.Println("Error upgrading to WebSocket:", err)
-				return
-			}
-			defer conn.Close()
-
-			for {
-				messageType, p, err := conn.ReadMessage()
-				if err != nil {
-					return
-				}
-
-				execCommand := string(p)
-
-				cmd := exec.Command("docker", "exec", containerInfo.ContainerID, "sh", "-c", execCommand)
-				var stdout bytes.Buffer
-				cmd.Stdout = &stdout
-				cmd.Stdin = os.Stdin
-				cmd.Stderr = os.Stderr
-				var st string
-				if err := cmd.Start(); err != nil {
-					st = fmt.Sprintf("Error starting container: %v\n", err)
-				}
-				if err := cmd.Wait(); err != nil {
-					st = fmt.Sprintf("Error waiting for container: %v\n", err)
-				}
-				if stdout.Len() > 0 {
-					st = stdout.String()
-				}
-				if err := conn.WriteMessage(messageType, []byte(st)); err != nil {
-					return
-				}
-			}
-			return
 		}
 
 		imageId := strings.Split(c.Request.Host, ".")[0]
