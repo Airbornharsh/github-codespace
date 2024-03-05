@@ -1,20 +1,36 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
+	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/airbornharsh/github-codespace/service/pkg/helpers"
 	"github.com/airbornharsh/github-codespace/service/pkg/routes"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
 
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
 func main() {
-	// gin.SetMode(gin.ReleaseMode)
+	var c time.Timer
+	c.C = make(chan time.Time)
+	gin.SetMode(gin.ReleaseMode)
 
 	r := gin.New()
 
@@ -22,7 +38,81 @@ func main() {
 	config.AllowAllOrigins = true
 	r.Use(cors.New(config))
 
+	// r.GET("/ws", func(c *gin.Context) {
+	// 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// 	defer conn.Close()
+	// 	i := 0
+	// 	for {
+	// 		i++
+	// 		conn.WriteMessage(websocket.TextMessage, []byte("Hello, WebSocket!"))
+	// 		time.Sleep(time.Second)
+	// 		fmt.Println("Sent message", i)
+	// 	}
+	// })
+
 	r.GET("/*any", func(c *gin.Context) {
+		if c.Request.URL.Path == "/ws" {
+			imageId := strings.Split(c.Request.Host, ".")[0]
+
+			containersData, err := helpers.ReadContainersData()
+			if err != nil {
+				c.JSON(500, gin.H{
+					"message": "Error reading containers data",
+					"error":   err.Error(),
+				})
+				return
+			}
+
+			containerInfo, ok := containersData[imageId]
+			if !ok {
+				c.JSON(404, gin.H{
+					"message": "Container not found",
+				})
+				return
+			}
+
+			conn, err := upgrader.Upgrade(c.Writer, c.Request, http.Header{
+				"Access-Control-Allow-Origin": []string{"*"},
+			})
+			if err != nil {
+				fmt.Println("Error upgrading to WebSocket:", err)
+				return
+			}
+			defer conn.Close()
+
+			for {
+				messageType, p, err := conn.ReadMessage()
+				if err != nil {
+					return
+				}
+
+				execCommand := string(p)
+
+				cmd := exec.Command("docker", "exec", containerInfo.ContainerID, "sh", "-c", execCommand)
+				var stdout bytes.Buffer
+				cmd.Stdout = &stdout
+				cmd.Stdin = os.Stdin
+				cmd.Stderr = os.Stderr
+				var st string
+				if err := cmd.Start(); err != nil {
+					st = fmt.Sprintf("Error starting container: %v\n", err)
+				}
+				if err := cmd.Wait(); err != nil {
+					st = fmt.Sprintf("Error waiting for container: %v\n", err)
+				}
+				if stdout.Len() > 0 {
+					st = stdout.String()
+				}
+				if err := conn.WriteMessage(messageType, []byte(st)); err != nil {
+					return
+				}
+			}
+			return
+		}
+
 		imageId := strings.Split(c.Request.Host, ".")[0]
 
 		containersData, err := helpers.ReadContainersData()
