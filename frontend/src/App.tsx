@@ -1,7 +1,12 @@
-import '@xterm/xterm/css/xterm.css'
+import RoutesContainer from './Routes'
+import { BrowserRouter } from 'react-router-dom'
 
 const App = () => {
-  return <div></div>
+  return (
+    <BrowserRouter>
+      <RoutesContainer />
+    </BrowserRouter>
+  )
 }
 
 export default App

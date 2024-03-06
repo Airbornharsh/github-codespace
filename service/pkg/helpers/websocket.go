@@ -16,11 +16,16 @@ import (
 type Command struct {
 	Dir     string `json:"dir"`
 	Command string `json:"command"`
+	Type    string `json:"type"`
+	IsFile  string `json:"isFile"`
 }
 
 type Output struct {
-	Out   string `json:"out"`
-	Error string `json:"error"`
+	Dir    string `json:"dir"`
+	Out    string `json:"out"`
+	Error  string `json:"error"`
+	Type   string `json:"type"`
+	IsFile string `json:"isFile"`
 }
 
 func StartWebSocket(c *gin.Context, upgrader *websocket.Upgrader) bool {
@@ -52,6 +57,8 @@ func StartWebSocket(c *gin.Context, upgrader *websocket.Upgrader) bool {
 	}
 	defer conn.Close()
 
+	fmt.Println("WebSocket connection established")
+
 	for {
 		messageType, p, err := conn.ReadMessage()
 		if err != nil {
@@ -63,6 +70,7 @@ func StartWebSocket(c *gin.Context, upgrader *websocket.Upgrader) bool {
 
 		execCommand := string(p)
 		json.Unmarshal([]byte(execCommand), &command)
+		fmt.Println("Command:", command)
 		cmd := exec.Command("docker", "exec", containerInfo.ContainerID, "sh", "-c", "cd "+command.Dir+"&& "+command.Command)
 		var stdout bytes.Buffer
 		cmd.Stdout = &stdout
@@ -77,7 +85,9 @@ func StartWebSocket(c *gin.Context, upgrader *websocket.Upgrader) bool {
 		if stdout.Len() > 0 {
 			output.Out = stdout.String()
 		}
-		
+		output.Type = command.Type
+		output.Dir = command.Dir
+		output.IsFile = command.IsFile
 		st, _ := json.Marshal(output)
 		if err := conn.WriteMessage(messageType, st); err != nil {
 			return false
