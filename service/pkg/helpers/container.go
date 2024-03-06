@@ -47,12 +47,12 @@ func CreateContainer(rootDir string, stack string, imageName string) (string, in
 		return "", 0, err
 	}
 
-	go func() {
-		cmd := exec.Command("docker", "kill", containerID).Run()
-		if cmd != nil {
-			fmt.Println("Error killing container", cmd)
-		}
-	}()
+	// go func() {
+	// 	cmd := exec.Command("docker", "kill", containerID).Run()
+	// 	if cmd != nil {
+	// 		fmt.Println("Error killing container", cmd)
+	// 	}
+	// }()
 
 	return containerID, hostPort, nil
 }

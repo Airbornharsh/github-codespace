@@ -4,7 +4,7 @@ import { useWebSocket } from '../context/WebSocketContext'
 import FolderStructure from '../components/FolderStructure'
 import CodeEditor from '@uiw/react-textarea-code-editor'
 import { useFiles } from '../context/FilesContext'
-import { BiSave } from 'react-icons/bi'
+import { BiSave, BiShareAlt } from 'react-icons/bi'
 
 const Editor = () => {
   const { id } = useParams()
@@ -24,6 +24,14 @@ const Editor = () => {
       <div className="w-[calc(100vw-16rem)] max-h-screen ml-64">
         <div className="bg-fStructBackground w-[100%] flex justify-between p-2 pr-3 h-10">
           <p></p>
+          <BiShareAlt
+            color="white"
+            size={'1.2rem'}
+            className="cursor-pointer"
+            onClick={() => {
+              window.open(`http://${id}.localhost:5000/`, '_blank')
+            }}
+          />
           <BiSave
             color="white"
             size={'1.2rem'}
