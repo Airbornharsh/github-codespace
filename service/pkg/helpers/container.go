@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"os/exec"
 )
@@ -75,9 +76,24 @@ func DeleteDockerImageAndContainer(imageId string, containerId string) error {
 
 func WriteFileToContainer(containerId string, imageId string, filePath string, data string) error {
 	newFilePath := "./fileTmp/" + imageId + filePath
+	elements := strings.Split(newFilePath, "/")
 
-	err := os.WriteFile(newFilePath, []byte(data), 0644)
+	if len(elements) > 0 {
+		lastIndex := len(elements) - 1
+		elements = elements[:lastIndex]
+	}
+
+	dirPath := strings.Join(elements, "/")
+
+	err := os.MkdirAll(dirPath, 0755)
 	if err != nil {
+		fmt.Println("Error creating directory", err)
+		return err
+	}
+
+	err = os.WriteFile(newFilePath, []byte(data), 0644)
+	if err != nil {
+		fmt.Println("Error writing file", err)
 		return err
 	}
 

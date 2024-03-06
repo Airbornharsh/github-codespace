@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -17,6 +18,7 @@ type Command struct {
 	Dir     string `json:"dir"`
 	Command string `json:"command"`
 	Type    string `json:"type"`
+	Data    string `json:"data"`
 	IsFile  string `json:"isFile"`
 }
 
@@ -70,27 +72,34 @@ func StartWebSocket(c *gin.Context, upgrader *websocket.Upgrader) bool {
 
 		execCommand := string(p)
 		json.Unmarshal([]byte(execCommand), &command)
-		fmt.Println("Command:", command)
-		cmd := exec.Command("docker", "exec", containerInfo.ContainerID, "sh", "-c", "cd "+command.Dir+"&& "+command.Command)
-		var stdout bytes.Buffer
-		cmd.Stdout = &stdout
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		if err := cmd.Start(); err != nil {
-			output.Error = fmt.Sprintf("Error starting container: %v\n", err)
-		}
-		if err := cmd.Wait(); err != nil {
-			output.Error = fmt.Sprintf("Error waiting for container: %v\n", err)
-		}
-		if stdout.Len() > 0 {
-			output.Out = stdout.String()
-		}
-		output.Type = command.Type
-		output.Dir = command.Dir
-		output.IsFile = command.IsFile
-		st, _ := json.Marshal(output)
-		if err := conn.WriteMessage(messageType, st); err != nil {
-			return false
+		var cmd *exec.Cmd
+		if command.Data != "" {
+			err := WriteFileToContainer(containerInfo.ContainerID, imageId, filepath.Join(command.Dir, command.IsFile), command.Data)
+			if err != nil {
+				output.Error = fmt.Sprintf("Error writing file to container: %v\n", err)
+			}
+		} else {
+			cmd = exec.Command("docker", "exec", containerInfo.ContainerID, "sh", "-c", "cd "+command.Dir+"&& "+command.Command)
+			var stdout bytes.Buffer
+			cmd.Stdout = &stdout
+			cmd.Stdin = os.Stdin
+			cmd.Stderr = os.Stderr
+			if err := cmd.Start(); err != nil {
+				output.Error = fmt.Sprintf("Error starting container: %v\n", err)
+			}
+			if err := cmd.Wait(); err != nil {
+				output.Error = fmt.Sprintf("Error waiting for container: %v\n", err)
+			}
+			if stdout.Len() > 0 {
+				output.Out = stdout.String()
+			}
+			output.Type = command.Type
+			output.Dir = command.Dir
+			output.IsFile = command.IsFile
+			st, _ := json.Marshal(output)
+			if err := conn.WriteMessage(messageType, st); err != nil {
+				return false
+			}
 		}
 	}
 }

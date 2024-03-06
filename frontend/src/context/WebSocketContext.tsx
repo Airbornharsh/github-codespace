@@ -104,9 +104,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     const fileName = filteredPath.pop()
     const cmd = {
       dir: '/app/' + removedFile,
-      command: `echo "` + data + `" > ` + fileName,
+      command: '',
       type: 'command',
-      isFile: fileName
+      isFile: fileName,
+      isCustom: false,
+      data
     }
     console.log(cmd)
     if (socket && socket.readyState === WebSocket.OPEN) {
