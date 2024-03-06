@@ -5,7 +5,9 @@ interface WebSocketContextProps {
   socket: WebSocket | null
   setSocket: (id: string) => void
   message: string
-  sendMessage: (message: string) => void
+  sendMessage: (path: string) => void
+  getFile: (path: string) => void
+  saveFile: (path: string, data: string) => void
 }
 
 const WebSocketContext = createContext<WebSocketContextProps | undefined>(
@@ -63,7 +65,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       } else if (resData.type === 'file') {
         console.log(resData)
         setFileData(
-          resData.dir.split('/app/')[1] || '' + resData.isFile,
+          resData.dir.split('/app/')[1] + '/' + resData.isFile ||
+            '' + resData.isFile,
           resData.out
         )
       } else if (resData.type === 'command') {
@@ -80,11 +83,45 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     }
   }
 
+  const getFile = (path: string) => {
+    const filteredPath = path.split('/').filter((e) => e !== '')
+    const removedFile = filteredPath.slice(0, -1).join('/')
+    const fileName = filteredPath.pop()
+    const cmd = {
+      dir: '/app/' + removedFile,
+      command: 'cat ' + fileName,
+      type: 'file',
+      isFile: fileName
+    }
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(cmd))
+    }
+  }
+
+  const saveFile = (path: string, data: string) => {
+    console.log(path)
+    const filteredPath = path.split('/').filter((e) => e !== '')
+    const removedFile = filteredPath.slice(0, -1).join('/')
+    const fileName = filteredPath.pop()
+    const cmd = {
+      dir: '/app/' + removedFile,
+      command: `echo "` + data + `" > ` + fileName,
+      type: 'command',
+      isFile: fileName
+    }
+    console.log(cmd)
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(cmd))
+    }
+  }
+
   const contextValue: WebSocketContextProps = {
     socket,
     setSocket: setSocketFn,
     message,
-    sendMessage
+    sendMessage,
+    getFile,
+    saveFile
   }
 
   return (

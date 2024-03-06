@@ -11,35 +11,14 @@ interface FolderType {
   path: string
 }
 
-// const data = {
-//   type: 'folder',
-//   path: 'app',
-//   children: {
-//     'src': {
-//       type: 'folder',
-//       path: 'app/src',
-//       children: {
-//         'index.js': {
-//           type: 'file',
-//           path: 'app/src/index.js',
-//           data: 'console.log("Hello, world!")'
-//         }
-//       }
-//     },
-//     'index.html': {
-//       type: 'file',
-//       path: 'app/index.html',
-//       data: '<h1>Hello, world!</h1>'
-//     }
-//   }
-// }
-
 interface FilesContextProps {
   files: {
     [key: string]: FileType | FolderType
   }
   setFiles: (dir: string, tempFiles: string[]) => void
   setFileData: (dir: string, data: string) => void
+  activeFile: string
+  activeFileData: string
 }
 
 const FilesContext = createContext<FilesContextProps | undefined>(undefined)
@@ -63,6 +42,8 @@ export const FilesProvider: React.FC<FilesProviderProps> = ({ children }) => {
   const [files, setFiles] = useState<{
     [key: string]: FileType | FolderType
   }>({})
+  const [activeFile, setActiveFile] = useState('')
+  const [activeFileData, setActiveFileData] = useState('')
 
   const setFilesFn = (dir: string, tempFileNames: string[]) => {
     tempFileNames.forEach((file) => {
@@ -81,6 +62,8 @@ export const FilesProvider: React.FC<FilesProviderProps> = ({ children }) => {
   }
 
   const setFileData = (dir: string, data: string) => {
+    setActiveFile(dir)
+    setActiveFileData(data)
     setFiles((prevFiles) => {
       return {
         ...prevFiles,
@@ -95,7 +78,15 @@ export const FilesProvider: React.FC<FilesProviderProps> = ({ children }) => {
   console.log(files)
 
   return (
-    <FilesContext.Provider value={{ files, setFiles: setFilesFn, setFileData }}>
+    <FilesContext.Provider
+      value={{
+        files,
+        setFiles: setFilesFn,
+        setFileData,
+        activeFile,
+        activeFileData
+      }}
+    >
       {children}
     </FilesContext.Provider>
   )
