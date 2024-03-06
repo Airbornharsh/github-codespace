@@ -39,6 +39,9 @@ const Folder: React.FC<FolderProps> = ({ path }) => {
       {isOpen && (
         <ul className="ml-2">
           {Object.keys(files).map((file) => {
+            if (!files[file].path) {
+              return null
+            }
             if (
               files[file].path.includes(path) &&
               files[file].path.split('/').filter((e) => e !== '').length ===

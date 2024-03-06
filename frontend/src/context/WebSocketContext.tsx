@@ -63,7 +63,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
           resData.out.split('\n').filter((t: string) => t !== '')
         )
       } else if (resData.type === 'file') {
-        console.log(resData)
         setFileData(
           resData.dir.split('/app/')[1] + '/' + resData.isFile ||
             '' + resData.isFile,

@@ -34,6 +34,7 @@ const Editor = () => {
           />
         </div>
         <div className="overflow-auto h-[100vh-2.5rem]">
+          <p className="text-white px-2 text-xs">{activeFile}</p>
           <CodeEditor
             value={activeFileData}
             language={activeFile.split('.').pop()}

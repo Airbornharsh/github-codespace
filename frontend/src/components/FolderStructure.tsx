@@ -27,12 +27,15 @@ const FolderStructure = () => {
         <h1 className="text-white text-xl">Folder Structure</h1>
         <ul className="text-sm flex flex-col gap-1">
           {Object.keys(files).map((file) => {
+            if (!files[file].path) {
+              return null
+            }
             const data = files[file].path.split('/')
             if (data.length > 1) {
               return null
             }
             if (files[file].type === 'file') {
-              return <File key={file} path={files[file].path} />
+              return <File key={file} path={file} />
             } else {
               return (
                 <Folder
