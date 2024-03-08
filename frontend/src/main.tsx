@@ -3,11 +3,14 @@ import App from './App.tsx'
 import './index.css'
 import { WebSocketProvider } from './context/WebSocketContext.tsx'
 import { FilesProvider } from './context/FilesContext.tsx'
+import { TerminalProvider } from './context/TerminalContext.tsx'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <FilesProvider>
-    <WebSocketProvider>
-      <App />
-    </WebSocketProvider>
-  </FilesProvider>
+  <TerminalProvider>
+    <FilesProvider>
+      <WebSocketProvider>
+        <App />
+      </WebSocketProvider>
+    </FilesProvider>
+  </TerminalProvider>
 )

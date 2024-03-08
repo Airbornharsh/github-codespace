@@ -5,6 +5,7 @@ import FolderStructure from '../components/FolderStructure'
 import CodeEditor from '@uiw/react-textarea-code-editor'
 import { useFiles } from '../context/FilesContext'
 import { BiSave, BiShareAlt } from 'react-icons/bi'
+import Terminal from '../components/Terminal'
 
 const Editor = () => {
   const { id } = useParams()
@@ -41,28 +42,31 @@ const Editor = () => {
             }}
           />
         </div>
-        <div className="overflow-auto h-[100vh-2.5rem]">
+        <div>
           <p className="text-white px-2 text-xs">{activeFile}</p>
-          <CodeEditor
-            value={activeFileData}
-            language={activeFile.split('.').pop()}
-            placeholder="Choose a File"
-            disabled={!activeFileData}
-            onChange={(e) => {
-              timeo && clearTimeout(timeo)
-              setFileData(e.target.value)
-              const t = setTimeout(() => {
-                saveFile(activeFile, e.target.value)
-              }, 2000)
-              setTimeo(t)
-            }}
-            padding={15}
-            className="w-[calc(100vw-16rem)] text-white p-3 text-sm rounded-md outline-none"
-            style={{
-              fontFamily:
-                'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace'
-            }}
-          />
+          <div className="overflow-auto h-[calc(100vh-18.5rem)]">
+            <CodeEditor
+              value={activeFileData}
+              language={activeFile.split('.').pop()}
+              placeholder="Choose a File"
+              disabled={!activeFileData}
+              onChange={(e) => {
+                timeo && clearTimeout(timeo)
+                setFileData(e.target.value)
+                const t = setTimeout(() => {
+                  saveFile(activeFile, e.target.value)
+                }, 2000)
+                setTimeo(t)
+              }}
+              padding={15}
+              className="w-[calc(100vw-16rem)] text-white p-3 text-sm rounded-md outline-none overflow-scroll"
+              style={{
+                fontFamily:
+                  'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace'
+              }}
+            />
+          </div>
+          <Terminal />
         </div>
       </div>
     </div>

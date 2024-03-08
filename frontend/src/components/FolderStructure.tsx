@@ -22,7 +22,7 @@ const FolderStructure = () => {
   }, [socket])
 
   return (
-    <div className="bg-fStructBackground w-64 h-screen fixed left-0 top-0 z-30 overflow-auto">
+    <div className="bg-fStructBackground w-64 h-screen fixed left-0 top-0 z-30 overflow-auto border-r-[0.1rem] border-gray-600">
       <div className="p-2">
         <h1 className="text-white text-xl">Folder Structure</h1>
         <ul className="text-sm flex flex-col gap-1">

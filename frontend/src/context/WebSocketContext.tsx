@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react'
 import { useFiles } from './FilesContext'
+import { useTerminal } from './TerminalContext'
 
 interface WebSocketContextProps {
   socket: WebSocket | null
   setSocket: (id: string) => void
-  message: string
   sendMessage: (path: string) => void
   getFile: (path: string) => void
   saveFile: (path: string, data: string) => void
+  execCommand: () => void
 }
 
 const WebSocketContext = createContext<WebSocketContextProps | undefined>(
@@ -33,7 +34,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   children
 }) => {
   const [socket, setSocket] = useState<WebSocket | null>(null)
-  const [message, setMessage] = useState<string>('')
+  const { routes, activeCommand, setOutputs } = useTerminal()
   const { setFiles, setFileData } = useFiles()
 
   const setSocketFn = (id: string) => {
@@ -69,7 +70,27 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
           resData.out
         )
       } else if (resData.type === 'command') {
-        setMessage(resData.out)
+        if (resData.error) {
+          setOutputs(
+            {
+              dir: '/' + routes.join('/'),
+              oldDir: resData.oldDir,
+              command: resData.command,
+              out: resData.error
+            },
+            false
+          )
+        } else {
+          setOutputs(
+            {
+              dir: resData.dir,
+              oldDir: resData.oldDir,
+              command: resData.command,
+              out: resData.out
+            },
+            false
+          )
+        }
       }
     })
 
@@ -116,13 +137,40 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     }
   }
 
+  const execCommand = () => {
+    if (activeCommand === '') {
+      return
+    }
+    if (activeCommand === 'clear') {
+      setOutputs(
+        {
+          dir: '/' + routes.join('/'),
+          oldDir: '',
+          command: activeCommand.trim(),
+          out: ''
+        },
+        true
+      )
+      return
+    }
+    const cmd = {
+      dir: '/' + routes.join('/'),
+      command: activeCommand.trim(),
+      type: 'command',
+      isFile: ''
+    }
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(cmd))
+    }
+  }
+
   const contextValue: WebSocketContextProps = {
     socket,
     setSocket: setSocketFn,
-    message,
     sendMessage,
     getFile,
-    saveFile
+    saveFile,
+    execCommand
   }
 
   return (
