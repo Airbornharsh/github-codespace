@@ -13,7 +13,7 @@ const Editor = () => {
   const { setSocket, saveFile } = useWebSocket()
   const [fileData, setFileData] = useState(activeFileData)
   const [timeo, setTimeo] = useState<NodeJS.Timeout | null>(null)
-  const [isSaved, setIsSaved] = useState(false)
+  const [isSaved, setIsSaved] = useState(true)
 
   useEffect(() => {
     setSocket(id!)
