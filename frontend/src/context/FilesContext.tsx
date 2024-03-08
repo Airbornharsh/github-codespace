@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 interface FileType {
   type: string
@@ -46,6 +46,34 @@ export const FilesProvider: React.FC<FilesProviderProps> = ({ children }) => {
   }>({})
   const [activeFile, setActiveFile] = useState('')
   const [activeFileData, setActiveFileData] = useState('')
+
+  useEffect(() => {
+    const compareFiles = (a: string, b: string): number => {
+      const typeA = files[a].type
+      const typeB = files[b].type
+
+      if (typeA === 'folder' && typeB !== 'folder') {
+        return -1
+      } else if (typeA !== 'folder' && typeB === 'folder') {
+        return 1
+      } else {
+        return a.localeCompare(b)
+      }
+    }
+
+    const sortedFileKeys = Object.keys(files).sort(compareFiles)
+
+    const sortedFiles = sortedFileKeys.reduce(
+      (acc, key) => {
+        acc[key] = files[key]
+        return acc
+      },
+      {} as { [key: string]: FileType | FolderType }
+    )
+
+    setFiles(sortedFiles)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [Object.keys(files).length])
 
   const setFilesFn = (dir: string, tempFileNames: string[]) => {
     tempFileNames.forEach((file) => {
@@ -96,8 +124,6 @@ export const FilesProvider: React.FC<FilesProviderProps> = ({ children }) => {
       return newFiles
     })
   }
-
-  console.log(files)
 
   return (
     <FilesContext.Provider

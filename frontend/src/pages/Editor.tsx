@@ -13,6 +13,7 @@ const Editor = () => {
   const { setSocket, saveFile } = useWebSocket()
   const [fileData, setFileData] = useState(activeFileData)
   const [timeo, setTimeo] = useState<NodeJS.Timeout | null>(null)
+  const [isSaved, setIsSaved] = useState(false)
 
   useEffect(() => {
     setSocket(id!)
@@ -39,22 +40,29 @@ const Editor = () => {
             className="cursor-pointer"
             onClick={() => {
               saveFile(activeFile, fileData)
+              clearTimeout(timeo!)
+              setIsSaved(true)
             }}
           />
         </div>
         <div>
-          <p className="text-white px-2 text-xs">{activeFile}</p>
-          <div className="overflow-auto h-[calc(100vh-18.5rem)]">
+          <p className="text-white px-2 text-xs">
+            {activeFile}
+            {isSaved ? '' : '*'}
+          </p>
+          <div className="overflow-auto h-[calc(100vh-19.5rem)]">
             <CodeEditor
               value={activeFileData}
               language={activeFile.split('.').pop()}
               placeholder="Choose a File"
               onChange={(e) => {
+                setIsSaved(false)
                 timeo && clearTimeout(timeo)
                 setFileData(e.target.value)
                 const t = setTimeout(() => {
                   saveFile(activeFile, e.target.value)
-                }, 2000)
+                  setIsSaved(true)
+                }, 4000)
                 setTimeo(t)
               }}
               padding={15}

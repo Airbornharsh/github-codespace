@@ -130,7 +130,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       type: 'command',
       isFile: fileName,
       isCustom: false,
-      data
+      data: data || ' '
     }
     console.log(cmd)
     if (socket && socket.readyState === WebSocket.OPEN) {
