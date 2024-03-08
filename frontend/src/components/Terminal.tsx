@@ -3,8 +3,7 @@ import { useTerminal } from '../context/TerminalContext'
 import { useWebSocket } from '../context/WebSocketContext'
 
 const Terminal = () => {
-  const { outputs, routes, activeCommand, setActiveCommand } =
-    useTerminal()
+  const { outputs, routes, activeCommand, setActiveCommand } = useTerminal()
   const { execCommand } = useWebSocket()
   const terminalRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -55,7 +54,7 @@ const Terminal = () => {
                   {out.command}
                 </pre>
               </div>
-              <pre className="text-gray-500">{out.out}</pre>
+              <pre className="text-gray-500 text-xs">{out.out}</pre>
             </li>
           )
         })}
