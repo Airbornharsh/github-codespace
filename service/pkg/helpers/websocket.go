@@ -74,7 +74,6 @@ func StartWebSocket(c *gin.Context, upgrader *websocket.Upgrader) bool {
 
 		execCommand := string(p)
 		json.Unmarshal([]byte(execCommand), &command)
-		fmt.Println("Command:", command)
 		var cmd *exec.Cmd
 		if command.Data != "" {
 			err := WriteFileToContainer(containerInfo.ContainerID, imageId, filepath.Join(command.Dir, command.IsFile), command.Data)
@@ -83,7 +82,6 @@ func StartWebSocket(c *gin.Context, upgrader *websocket.Upgrader) bool {
 			}
 		} else {
 			cmd = exec.Command("docker", "exec", containerInfo.ContainerID, "sh", "-c", "cd "+command.Dir+"&& "+command.Command)
-			fmt.Println("Command:", cmd)
 			var stdout bytes.Buffer
 			cmd.Stdout = &stdout
 			cmd.Stdin = os.Stdin
