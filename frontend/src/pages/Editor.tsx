@@ -49,7 +49,6 @@ const Editor = () => {
               value={activeFileData}
               language={activeFile.split('.').pop()}
               placeholder="Choose a File"
-              disabled={!activeFileData}
               onChange={(e) => {
                 timeo && clearTimeout(timeo)
                 setFileData(e.target.value)
@@ -59,7 +58,7 @@ const Editor = () => {
                 setTimeo(t)
               }}
               padding={15}
-              className="w-[calc(100vw-16rem)] text-white p-3 text-sm rounded-md outline-none overflow-scroll"
+              className="w-[calc(100vw-16rem)] h-[calc(100vh-18.5rem)] text-white p-3 text-sm rounded-md outline-none overflow-scroll"
               style={{
                 fontFamily:
                   'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace'

@@ -58,6 +58,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
     newSocket.addEventListener('message', (event) => {
       const resData = JSON.parse(event.data)
+      console.log(resData)
       if (resData.type === 'files') {
         setFiles(
           resData.dir.split('/app/')[1] || '',
@@ -76,7 +77,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
               dir: '/' + routes.join('/'),
               oldDir: resData.oldDir,
               command: resData.command,
-              out: resData.error
+              out: resData.out + resData.error
             },
             false
           )

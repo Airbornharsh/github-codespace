@@ -19,6 +19,8 @@ interface FilesContextProps {
   setFileData: (dir: string, data: string) => void
   activeFile: string
   activeFileData: string
+  removeFile: (dir: string) => void
+  removeFolder: (dir: string) => void
 }
 
 const FilesContext = createContext<FilesContextProps | undefined>(undefined)
@@ -75,6 +77,26 @@ export const FilesProvider: React.FC<FilesProviderProps> = ({ children }) => {
     })
   }
 
+  const removeFile = (dir: string) => {
+    setFiles((prevFiles) => {
+      const newFiles = { ...prevFiles }
+      delete newFiles[dir]
+      return newFiles
+    })
+  }
+
+  const removeFolder = (dir: string) => {
+    setFiles((prevFiles) => {
+      const newFiles = { ...prevFiles }
+      Object.keys(newFiles).forEach((file) => {
+        if (file.includes(dir)) {
+          delete newFiles[file]
+        }
+      })
+      return newFiles
+    })
+  }
+
   console.log(files)
 
   return (
@@ -84,7 +106,9 @@ export const FilesProvider: React.FC<FilesProviderProps> = ({ children }) => {
         setFiles: setFilesFn,
         setFileData,
         activeFile,
-        activeFileData
+        activeFileData,
+        removeFile,
+        removeFolder
       }}
     >
       {children}
