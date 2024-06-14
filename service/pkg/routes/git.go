@@ -9,6 +9,7 @@ import (
 func GitInit(r *gin.RouterGroup) {
 	gitR := r.Group("/git")
 
+
 	gitR.POST("/clone", handlers.GitClone)
-	gitR.DELETE("/delete", handlers.DeleteContainer)
+	// gitR.DELETE("/delete", handlers.DeleteContainer)
 }

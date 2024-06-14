@@ -10,40 +10,54 @@ import (
 	"os/exec"
 )
 
-func CreateContainer(rootDir string, stack string, imageName string) (string, int, error) {
-	codeLocation := ""
-	hostPort := GetPort(8080)
-
-	if rootDir == "" {
-		codeLocation = "./tmp/" + imageName
-	} else {
-		codeLocation = "./tmp/" + imageName + "/" + rootDir
-	}
-
-	image := imageName + ":latest"
-
-	err := exec.Command("cp", "./pkg/dockerFiles/"+stack+"/Dockerfile", codeLocation).Run()
+func CreateContainer(id string, name string, giturl string) (string, int, error) {
+	imageName := os.Getenv("IMAGE_NAME")
+	hostPort, err := GetPort(id, name, giturl)
 	if err != nil {
 		return "", 0, err
 	}
 
-	err = exec.Command("docker", "build", "-t", image, codeLocation).Run()
-	if err != nil {
-		fmt.Println("building ", err)
-		return "", 0, err
+	var containerName string
+	prefix := "https://github.com/"
+	suffix := ".git"
+
+	if strings.HasPrefix(giturl, prefix) {
+		containerName = strings.TrimPrefix(giturl, prefix)
 	}
 
-	createCmd := exec.Command("docker", "create", "--name", imageName, "-p", strconv.Itoa(hostPort)+":3000", image)
+	if strings.HasSuffix(giturl, suffix) {
+		containerName = strings.TrimSuffix(containerName, suffix)
+	}
+
+	containerName = strings.ReplaceAll(containerName, "/", "-")
+
+	println(containerName)
+
+	createCmd := exec.Command("docker", "create", "--name", containerName, "-p", strconv.Itoa(hostPort)+":8080", imageName)
 	output, err := createCmd.CombinedOutput()
 	if err != nil {
 		return "", 0, err
 	}
 
-	containerID := string(bytes.TrimSpace(output))
+	containerId := string(bytes.TrimSpace(output))
 
-	startCmd := exec.Command("docker", "start", containerID)
+	startCmd := exec.Command("docker", "start", containerId)
 	_, err = startCmd.CombinedOutput()
 	if err != nil {
+		return "", 0, err
+	}
+
+	AddContainerId(containerId, id)
+	command := fmt.Sprintf("cd /home/coder && mkdir -p Code && cd Code && git clone %s", giturl)
+	cmd := exec.Command("docker", "exec", containerId, "sh", "-c", command)
+	if err := cmd.Start(); err != nil {
+		SetUnActive(id)
+		println(err.Error())
+		return "", 0, err
+	}
+	if err := cmd.Wait(); err != nil {
+		SetUnActive(id)
+		println(err.Error())
 		return "", 0, err
 	}
 
@@ -54,23 +68,19 @@ func CreateContainer(rootDir string, stack string, imageName string) (string, in
 	// 	}
 	// }()
 
-	return containerID, hostPort, nil
+	return containerId, hostPort, nil
 }
 
-func DeleteDockerImageAndContainer(imageId string, containerId string) error {
+func DeleteDockerContainer(containerId string) error {
 	err := exec.Command("docker", "stop", containerId).Run()
 	if err != nil {
 		return err
 	}
-
 	err = exec.Command("docker", "rm", containerId).Run()
 	if err != nil {
 		return err
 	}
-	err = exec.Command("docker", "rmi", imageId).Run()
-	if err != nil {
-		return err
-	}
+	RemoveContainer(containerId)
 	return nil
 }
 

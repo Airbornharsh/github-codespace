@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"net/http"
+	// "net/http"
 	"net/http/httputil"
 	"net/url"
 	"strconv"
@@ -13,21 +13,27 @@ import (
 	"github.com/airbornharsh/github-codespace/service/pkg/routes"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
+	"github.com/joho/godotenv"
+	// "github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
+// var upgrader = websocket.Upgrader{
+// 	ReadBufferSize:  1024,
+// 	WriteBufferSize: 1024,
+// 	CheckOrigin: func(r *http.Request) bool {
+// 		return true
+// 	},
+// }
 
 func main() {
 	var c time.Timer
 	c.C = make(chan time.Time)
 	gin.SetMode(gin.ReleaseMode)
+
+	err := godotenv.Load(".env")
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
 
 	r := gin.New()
 
@@ -35,46 +41,26 @@ func main() {
 	config.AllowAllOrigins = true
 	r.Use(cors.New(config))
 
-	// r.GET("/ws", func(c *gin.Context) {
-	// 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-	// 	if err != nil {
-	// 		return
-	// 	}
-	// 	defer conn.Close()
-	// 	i := 0
-	// 	for {
-	// 		i++
-	// 		conn.WriteMessage(websocket.TextMessage, []byte("Hello, WebSocket!"))
-	// 		time.Sleep(time.Second)
-	// 		fmt.Println("Sent message", i)
-	// 	}
-	// })
-
 	r.GET("/*any", func(c *gin.Context) {
-		if c.Request.URL.Path == "/ws" {
-			done := helpers.StartWebSocket(c, &upgrader)
-			if !done {
-				c.JSON(500, gin.H{
-					"message": "Error starting WebSocket",
-				})
-			}
+		// if c.Request.URL.Path == "/ws" {
+		// 	done := helpers.StartWebSocket(c, &upgrader)
+		// 	if !done {
+		// 		c.JSON(500, gin.H{
+		// 			"message": "Error starting WebSocket",
+		// 		})
+		// 	}
+		// }
+
+		id := strings.Split(c.Request.Host, ".")[0]
+		if id == "www" {
+			id = strings.Split(c.Request.Host, ".")[1]
 		}
 
-		imageId := strings.Split(c.Request.Host, ".")[0]
-
-		containersData, err := helpers.ReadContainersData()
+		containerInfo, err := helpers.ReadContainersData(id)
 		if err != nil {
 			c.JSON(500, gin.H{
 				"message": "Error reading containers data",
 				"error":   err.Error(),
-			})
-			return
-		}
-
-		containerInfo, ok := containersData[imageId]
-		if !ok {
-			c.JSON(404, gin.H{
-				"message": "Container not found",
 			})
 			return
 		}

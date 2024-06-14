@@ -2,41 +2,84 @@ package helpers
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
+	"time"
+
+	"path/filepath"
 )
 
 type ContainerInfo struct {
-	ContainerID   string `json:"containerId"`
-	ContainerName string `json:"containerName"`
-	Port          int    `json:"port"`
+	Id          string `json:"id"`
+	ContainerID string `json:"containerId"`
+	Name        string `json:"name"`
+	Port        int    `json:"port"`
+	Active      bool   `json:"active"`
+	GitUrl      string `json:"gitUrl"`
 }
 
-type ContainerMap map[string]ContainerInfo
+type DATA struct {
+	Currentport int             `json:"currentPort"`
+	MaxActive   int             `json:"maxActive"`
+	Active      int             `json:"active"`
+	List        []ContainerInfo `json:"list"`
+	Ids         []string        `json:"ids"`
+}
 
-func ReadContainersData() (ContainerMap, error) {
+var LOCKED = false
+
+func GetData() (DATA, error) {
+	var err error
+	if LOCKED {
+		try := 10
+		for try > 0 && !LOCKED {
+			println("Waiting to be unlocked", 10-try)
+			time.Sleep(time.Second * 5)
+			try--
+		}
+		if !LOCKED {
+			return DATA{}, err
+		}
+	}
+
 	absContextDir, err := filepath.Abs("./data/containers.info.json")
 	if err != nil {
-		return nil, err
+		return DATA{}, err
 	}
 
 	jsonFile, err := os.ReadFile(absContextDir)
 	if err != nil {
-		return nil, err
+		return DATA{}, err
 	}
 
-	var containerMap ContainerMap
+	var data DATA
 
-	err = json.Unmarshal(jsonFile, &containerMap)
+	err = json.Unmarshal(jsonFile, &data)
 	if err != nil {
-		return nil, err
+		return DATA{}, err
 	}
-	return containerMap, nil
+	return data, nil
 }
 
-func WriteFile(data ContainerMap) error {
+func ReadContainersData(id string) (ContainerInfo, error) {
+	data, err := GetData()
+	if err != nil {
+		return ContainerInfo{}, err
+	}
+	LOCKED = true
+	for _, container := range data.List {
+		if container.Id == id {
+			LOCKED = false
+			return container, nil
+		}
+	}
+	LOCKED = false
+	return ContainerInfo{}, nil
+}
+
+func WriteFile(data DATA, lock bool) error {
 	absContextDir, err := filepath.Abs("./data/containers.info.json")
 	if err != nil {
 		return err
@@ -51,32 +94,17 @@ func WriteFile(data ContainerMap) error {
 	if err != nil {
 		return err
 	}
-
+	LOCKED = lock
 	return nil
 }
 
-func CreateContainerData(imageName string, containerId string, port int) (string, error) {
-	data, err := ReadContainersData()
+func GetPort(id string, name string, gitUrl string) (int, error) {
+	data, err := GetData()
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-
-	data[imageName] = ContainerInfo{
-		ContainerID:   containerId,
-		ContainerName: imageName,
-		Port:          port,
-	}
-
-	err = WriteFile(data)
-
-	if err != nil {
-		return "", err
-	}
-
-	return containerId, nil
-}
-
-func GetPort(port int) int {
+	LOCKED = true
+	port := data.Currentport + 1
 	for {
 		port++
 		cmd := exec.Command("sudo", "lsof", "-i", "tcp:"+strconv.Itoa(port))
@@ -85,6 +113,79 @@ func GetPort(port int) int {
 			break
 		}
 	}
+	data.List = append(data.List, ContainerInfo{
+		Id:          id,
+		ContainerID: "",
+		Name:        name,
+		Port:        port,
+		Active:      false,
+		GitUrl:      gitUrl,
+	})
+	data.Currentport = port
+	WriteFile(data, false)
+	return port, nil
+}
 
-	return port
+func AddContainerId(containerId string, id string) error {
+	data, err := GetData()
+	if err != nil {
+		return err
+	}
+	LOCKED = true
+	if data.Active > data.MaxActive {
+		return errors.New("have enough containers running")
+	}
+	for i, container := range data.List {
+		if container.Id == id {
+			container.ContainerID = containerId
+			container.Active = true
+			data.List[i] = container
+			break
+		}
+	}
+	data.Active++
+	WriteFile(data, false)
+	return nil
+}
+
+func SetUnActive(id string) error {
+	data, err := GetData()
+	if err != nil {
+		return err
+	}
+	LOCKED = true
+	for i, container := range data.List {
+		if container.Id == id {
+			if !container.Active {
+				return nil
+			}
+			container.Active = true
+			data.Active--
+			data.List[i] = container
+			break
+		}
+	}
+	err = WriteFile(data, false)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func RemoveContainer(containerId string) error {
+	data, err := GetData()
+	if err != nil {
+		return err
+	}
+	LOCKED = true
+	data.Active--
+	for i, container := range data.List {
+		if container.ContainerID == containerId {
+			container.Active = false
+			data.List[i] = container
+			break
+		}
+	}
+	WriteFile(data, false)
+	return nil
 }
